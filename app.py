@@ -31,25 +31,30 @@ class User(pw.Model):
     def all_users(cls):
         try:
             users = User.select()
-            return users
+            if users:
+                return users
+            return "No hay usuarios"
         except:
             return "No se pudo completar la consulta"
 
     @classmethod
     def new_user(cls, username, password, email):
-        user = User()
-        user.username = username
-        user.password = password
-        user.email = email
-        user.save()
+        try:
+            user = User()
+            user.username = username
+            user.password = password
+            user.email = email
+            user.save()
+        except:
+            print("Ocurrio un error")
 
     @classmethod
     def get_user_by_id(cls, id):
         try:
             user = User.select().where(User.id == id).get()
             return user
-        except:
-            return "No se pudo completar la consulta"
+        except User.DoesNotExist as err:
+            return "No se pudo completar la consulta "
 
     @classmethod
     def update_status_user(cls, id, status):
@@ -70,14 +75,49 @@ class User(pw.Model):
 
     @classmethod
     def last_user(cls):
-        user = User.select().order_by(User.id.desc()).limit(1).get()
-        return user
+        try:
+            user = User.select().order_by(User.id.desc()).limit(1).get()
+            if user:
+                return user
+            return "No hay usuarios"
+        except:
+            return "No se pudo realizar la consulta"
+
+
+class Store(pw.Model):
+    user = pw.ForeignKeyField(User, primary_key=True)
+    name = pw.CharField(max_length=50)
+    address = pw.TextField()
+    active = pw.BlobField(default=True)
+    create_at = pw.DateTimeField(default=datetime.now())
+
+    class Meta:
+        database = db
+        db_table = 'stores'
+
+    @classmethod
+    def new_store(cls, user, name, address):
+        Store.create(user=user, name=name, address=address)
+
+    @classmethod
+    def get_store_by_userId(cls, id):
+        try:
+            store = Store.select().where(Store.user == id).get()
+            if store:
+                return store
+            return "No hay tiendas"
+        except:
+            return "No se pudo realizar la consulta"
+
+    def __str__(self):
+        return self.name
 
 
 if __name__ == "__main__":
     if not User.table_exists():
         User.create_table()
+    if not Store.table_exists():
+        Store.create_table()
 
-    # User.new_user("emmanuelurbina", "124", "emmanuelluur@gmail.com")
-    # Obtiene usuario
-    print(User.last_user())
+    store = Store.get_store_by_userId(1)
+    print(store)
