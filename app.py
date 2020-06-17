@@ -68,6 +68,11 @@ class User(pw.Model):
         user = User.get_user_by_id(id)
         user.delete_instance()
 
+    @classmethod
+    def last_user(cls):
+        user = User.select().order_by(User.id.desc()).limit(1).get()
+        return user
+
 
 if __name__ == "__main__":
     if not User.table_exists():
@@ -75,6 +80,4 @@ if __name__ == "__main__":
 
     # User.new_user("emmanuelurbina", "124", "emmanuelluur@gmail.com")
     # Obtiene usuario
-    user = User.get_user_by_id(3)
-    print(user)
-    user = User.delet_user(3)
+    print(User.last_user())
