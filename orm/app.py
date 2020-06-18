@@ -1,7 +1,13 @@
-from models import Store, User, Product, Category
+from models import Store, User, Product, Category, CategoriesProducts
 
 
 def create_tables():
+
+    if CategoriesProducts.table_exists():
+        CategoriesProducts.drop_table()
+
+    if Category.table_exists():
+        Category.drop_table()
 
     if Product.table_exists():
         Product.drop_table()
@@ -15,6 +21,8 @@ def create_tables():
     User.create_table()
     Store.create_table()
     Product.create_table()
+    Category.create_table()
+    CategoriesProducts.create_table()
 
 
 def create_users():
@@ -47,15 +55,40 @@ def create_products():
                         description='Mostaza', price=30.9, stock=80)
 
 
+def insert_categories():
+    Category.new(name='Liquidos', description='liquidos')
+    Category.new(name='Embutidos', description='embutidos')
+    Category.new(name='Snacks', description='snacks')
+    Category.new(name='Aderezos', description='aderezos')
+    Category.new(name='Carnes', description='carnes')
+
+
+def insert_categories_products():
+    CategoriesProducts.new(categorie=1, product=2)
+    CategoriesProducts.new(categorie=1, product=5)
+    CategoriesProducts.new(categorie=1, product=7)
+
+    CategoriesProducts.new(categorie=2, product=3)
+
+    CategoriesProducts.new(categorie=3, product=6)
+
+    CategoriesProducts.new(categorie=4, product=4)
+    CategoriesProducts.new(categorie=4, product=8)
+
+    CategoriesProducts.new(categorie=5, product=3)
+
+
 def create_schema():
     create_tables()
     create_users()
     create_stores()
     create_products()
+    insert_categories()
+    insert_categories_products()
 
 
 if __name__ == "__main__":
-    query = User.all_products_by_user(1)
+    jamon = Product.select().where(Product.name == 'Leche').get()
 
-    for product in query:
-        print(product)
+    for categorie in jamon.categories:
+        print(categorie)

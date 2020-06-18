@@ -177,5 +177,30 @@ class Category(pw.Model):
         database = db
         db_table = 'categories'
 
+    @classmethod
+    def new(cls, name, description):
+        Category.create(name=name, description=description)
+
     def __str__(self):
-        return '{name} - ${price}'.format(name=self.name, price=self.price)
+        return '{name}'.format(name=self.name)
+
+
+class CategoriesProducts(pw.Model):
+    product = pw.ForeignKeyField(Product, related_name="categories")
+    categorie = pw.ForeignKeyField(Category, related_name="products")
+
+    class Meta:
+        database = db
+        db_table: 'categoriesproducts'
+
+    @classmethod
+    def new(cls, product, categorie):
+        CategoriesProducts.create(product=product, categorie=categorie)
+
+    @classmethod
+    def all(cls):
+        query = CategoriesProducts.select()
+        return query
+
+    def __str__(self):
+        return f"{self.product} - {self.categorie}"
