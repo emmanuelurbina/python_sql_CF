@@ -18,7 +18,7 @@ class User(pw.Model):
     password = pw.CharField(max_length=50)
     email = pw.CharField(max_length=50, null=True)
     active = pw.BooleanField(default=True)
-    create_at = pw.DateTimeField(default=datetime.now())
+    created_date = pw.DateTimeField(default=datetime.now())
 
     class Meta:
         database = db
@@ -83,13 +83,41 @@ class User(pw.Model):
         except:
             return "No se pudo realizar la consulta"
 
+    @classmethod
+    def user_stores_by_id(cls, id):
+        try:
+            stores = []
+            res = User.get_user_by_id(id)
+            for store in res.stores:
+                stores.append(store)
+            return stores
+        except:
+            print("Error")
+
+    @classmethod
+    def all_products_by_user(cls, id):
+        # devuelve todos los productos relacionados a la tienda del usuario
+        products = (
+            Product.select()
+            .join(Store)
+            .join(User)
+            .where(User.id == id)
+            .order_by(Product.price.desc())
+        )
+        return products
+
 
 class Store(pw.Model):
-    user = pw.ForeignKeyField(User, primary_key=True)
+    """
+        - Relacion 1+1
+        user = pw.ForeignKeyField(User, primary_key=True)
+    """
+    # Relacion 1 a muchos
+    user = pw.ForeignKeyField(User, related_name="stores")
     name = pw.CharField(max_length=50)
     address = pw.TextField()
     active = pw.BlobField(default=True)
-    create_at = pw.DateTimeField(default=datetime.now())
+    created_date = pw.DateTimeField(default=datetime.now())
 
     class Meta:
         database = db
@@ -113,11 +141,41 @@ class Store(pw.Model):
         return self.name
 
 
-if __name__ == "__main__":
-    if not User.table_exists():
-        User.create_table()
-    if not Store.table_exists():
-        Store.create_table()
+class Product(pw.Model):
+    name = pw.CharField(max_length=100)
+    description = pw.TextField()
+    """
+        ForeignKeyField allows for a backreferencing property to be bound
+        to the target model. Implicitly, this property will be named
+        classname_set, where classname is the lowercase name of the class,
+        but can be overridden via the parameter related_name:
+    """
+    store = pw.ForeignKeyField(Store, related_name='products')
+    price = pw.DecimalField(max_digits=5, decimal_places=2)  # 100.00
+    stock = pw.IntegerField()
+    created_date = pw.DateTimeField(default=datetime.now)
 
-    store = Store.get_store_by_userId(1)
-    print(store)
+    class Meta:
+        database = db
+        db_table = 'products'
+
+    @classmethod
+    def new_product(cls, store, name, description, price, stock):
+        Product.create(store=store, name=name,
+                       description=description, price=price, stock=stock)
+
+    def __str__(self):
+        return '{name} - ${price}'.format(name=self.name, price=self.price)
+
+
+class Category(pw.Model):
+    name = pw.CharField(max_length=100)
+    description = pw.TextField()
+    created_date = pw.DateTimeField(default=datetime.now)
+
+    class Meta:
+        database = db
+        db_table = 'categories'
+
+    def __str__(self):
+        return '{name} - ${price}'.format(name=self.name, price=self.price)
