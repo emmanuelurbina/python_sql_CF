@@ -88,7 +88,5 @@ def create_schema():
 
 
 if __name__ == "__main__":
-    jamon = Product.select().where(Product.name == 'Leche').get()
-
-    for categorie in jamon.categories:
-        print(categorie)
+    jamon = Product.get(Product.name == 'Jamon')
+    jamon.delete_instance(recursive=True)
